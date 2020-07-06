@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <title>音乐在线播放</title>
+    <style>
+        .font-art {
+            text-shadow: 0 -1px 5px rgba(0, 0, 0, .4);
+            color: #60497C;
+            /* font-size: 2em; */
+            text-align: center;
+            font-weight: bold;
+            word-spacing: 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h3 class="font-art" onclick="location.href='/'">音乐无法播放请检查身份验证信息是否过期</h3>
+
+    <div style='width:90%;margin:auto;'>
+        <h3 id="fileName"></h3>
+        <audio controls width='100%' autoplay id="playMusic"></video>
+    </div>
+
+    <script>
+        let src = location.search.slice(1);
+        playMusic.src = '/' + src;
+        fileName.textContent = decodeURI(src);
+    </script>
+</body>
+
+</html>

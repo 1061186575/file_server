@@ -1,0 +1,7 @@
+{
+    "name": "zp_file_server",
+    "version": "1.0.0",
+    "devDependencies": {
+        "formidable": "^1.2.1"
+    }
+}

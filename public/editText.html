@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <script src="./js/jq.js"></script>
+    <title>文本在线编辑</title>
+    <style>
+        .font-art {
+            text-shadow: 0 -1px 5px rgba(0, 0, 0, .4);
+            color: #60497C;
+            /* font-size: 2em; */
+            text-align: center;
+            font-weight: bold;
+            word-spacing: 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            display: inline-block;
+            width: 80px;
+            height: 30px;
+            line-height: 30px;
+            padding: 0 18px;
+            background-color: #03A9F4;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            opacity: .8;
+            filter: alpha(opacity=80);
+            color: #fff
+        }
+        
+        .btn:active {
+            opacity: 1;
+            filter: alpha(opacity=100)
+        }
+        
+        #textareaEle {
+            width: 90%;
+            height: 350px;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <h3 class="font-art" onclick="location.href='/'">无法编辑请检查身份验证信息是否过期</h3> -->
+
+    <div style='width:90%;margin:auto;text-align: center;'>
+        <h3 id="showFileName"></h3>
+        <textarea name="" id="textareaEle" cols="30" rows="10"></textarea>
+        <div>
+            <button id="modifyBtn" class="btn">保存</button>
+        </div>
+    </div>
+
+    <script>
+        let src = location.search.slice(1);
+        var fileName = decodeURI(src);
+        showFileName.textContent = fileName;
+
+        $.ajax({
+            url: '/' + fileName,
+            type: 'get',
+            success(d) {
+                console.log("d: ", d);
+                textareaEle.value = d
+            },
+            error(err) {
+                console.log("err: ", err);
+            }
+        })
+
+        modifyBtn.onclick = function() {
+            $.ajax({
+                url: '/modifyTextFile?' + fileName,
+                type: 'post',
+                data: textareaEle.value,
+                success(d) {
+                    console.log("d: ", d);
+                    d = JSON.parse(d)
+                    if (d.code === 0) {
+
+                    } else {
+
+                    }
+                    alert(d.msg);
+                },
+                error(err) {
+                    console.log("err: ", err);
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

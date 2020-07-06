@@ -1,0 +1,316 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="./public/favicon.ico" type="image/x-icon">
+    <title>zp文件服务器</title>
+    <script src="./public/js/jq.js"></script>
+    <link rel="stylesheet" href="./public/css/index.css">
+</head>
+
+<body>
+
+    <form id="uploadFileForm" name="uploadFileForm">
+        <h3>
+            上传文件
+            <label for="allowCoverage" style="font-size: 16px;margin-right: 15px;">
+                <input type="checkbox" name="allowCoverage" value="true" id="allowCoverage">允许覆盖同名文件
+            </label>
+            <button type="button" class="btn btn-radius30" onclick="clearCookie()">退出</button>
+        </h3>
+        <div>
+        </div>
+        <input type="file" id="fileSelect" name="uploadFile" multiple>
+        <button type="button" id="uploadFileBtn" style="color: blue;">上传文件</button>
+        <div id="uploading" hidden style="margin-top: 10px;color: red;">文件上传中, 请稍等...</div>
+    </form>
+
+    <h3 style="margin-left: 15px;">文件列表(<span id="fileCount">0</span>个文件):</h3>
+    <table>
+        <thead>
+            <tr>
+                <th onclick="sort('src')">文件名</th>
+                <th onclick="sort('size')">文件大小</th>
+                <th onclick="sort('mtimeMs')">修改时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id='allFile'>
+
+        </tbody>
+    </table>
+
+
+    <script>
+        // 前端限制上传的文件最大为1GB, 程序员可以在浏览器控制台修改maxFileSize的值用来上传更大的文件, 后端限制最大10GB
+        let maxFileSize = 1 * 1024 * 1024 * 1024;
+
+        let fileCount = document.getElementById('fileCount');
+
+        let AllFileData = [];
+        window.onload = function() {
+            // 获取文件信息
+            $.ajax({
+                url: '/getAllFileInfo',
+                type: 'get',
+                success(d) {
+                    d = JSON.parse(d);
+                    console.log("文件信息: ", d);
+                    AllFileData = d;
+                    // 显示文件总数
+                    fileCount.textContent = AllFileData.length;
+                    renderFileList(d)
+                },
+                error(err) {
+                    alert(err);
+                    console.log("err: ", err);
+                }
+            })
+        }
+
+        // 上传文件
+        uploadFileBtn.onclick = function() {
+
+            if (!fileSelect.files.length) {
+                alert('请先选择文件')
+                return;
+            }
+
+            let allUploadFileSize = 0;
+            Array.from(fileSelect.files).forEach(file => {
+                allUploadFileSize += file.size;
+                console.log(file.size)
+            })
+
+            if (allUploadFileSize > maxFileSize) {
+                alert('文件总大小大于1GB, 无法上传')
+                return;
+            }
+
+            if (allUploadFileSize > 10 * 1024 * 1024 * 1024) { // 后端限制文件最大为10GB
+                alert('文件总大小大于10GB, 前端改代码也无法上传...')
+                return;
+            }
+
+            // 防止快速连续多次点击导致重复上传
+            uploadFileBtn.disabled = true;
+            uploading.hidden = false;
+
+            var fd = new FormData(document.forms['uploadFileForm']);
+            $.ajax({
+                url: '/uploadFile',
+                type: 'post',
+                data: fd,
+                contentType: false, // 取消自动的设置请求头
+                processData: false, //取消自动格式化数据
+                enctype: 'multipart/form-data',
+                success(d) {
+                    if (d) {
+                        alert(d)
+                    } else {
+                        location.reload();
+                    }
+                    console.log("d: ", d);
+                },
+                error(err) {
+                    console.log("err: ", err);
+                    alert(err.responseText)
+                },
+                complete() {
+                    uploadFileBtn.disabled = false;
+                    uploading.hidden = true;
+                }
+            })
+        }
+
+
+
+        // 文件删除和下载
+        allFile.onclick = function(e) { // 给所有按钮的父元素添加点击事件
+
+            if (e.target.tagName !== 'BUTTON') return;
+
+            var fileName = e.target.dataset.filename;
+            var className = e.target.className;
+
+            // 删除
+            if (className.includes('btn-delete')) {
+                if (!confirm("确认删除？")) return;
+
+                $.ajax({
+                    url: '/deleteFile?' + fileName,
+                    type: 'get',
+                    success(d) {
+                        console.log("d: ", d);
+                        if (d) {
+                            alert(d);
+                        } else {
+                            e.target.parentElement.parentElement.remove();
+                            fileCount.textContent = ~~fileCount.textContent - 1; // 页面显示的文件总数减一
+                        }
+                    },
+                    error(err) {
+                        console.log("err: ", err);
+                    }
+                })
+
+            } else if (className.includes('btn-download')) { // 下载
+                let a_tag = document.createElement('a')
+                a_tag.href = fileName;
+                a_tag.download = fileName;
+                a_tag.click()
+                a_tag = null
+            }
+
+        }
+
+
+        function clearCookie() {
+
+            let cookie = document.cookie;
+            let cookieArray = [];
+            if (cookie) {
+                cookieArray = cookie.split(';')
+            }
+            console.log(cookie);
+            console.log(cookieArray);
+
+            cookieArray.map(function(item) {
+                let itemCookie = item.trim().split('=');
+                const cookie_key = itemCookie[0];
+                const cookie_value = itemCookie[1];
+                document.cookie = cookie_key + '=0;expires=' + new Date(0).toUTCString()
+            })
+            location.reload();
+        }
+
+
+        // 标记当前是从小到大排序还是从大到小排序, 文件名、大小、修改时间都使用sort_flag标记, 懒得单独记录它们的状态了
+        let sort_flag = false;
+
+        // 排序
+        function sort(type) {
+            let data = JSON.parse(JSON.stringify(AllFileData)) // 深拷贝数组
+
+            sort_flag = !sort_flag;
+
+            // 选择排序
+            for (let i = 0; i < data.length - 1; i++) {
+                for (let j = i + 1; j < data.length; j++) {
+
+                    if (sort_flag) {
+                        if (data[j][type] > data[i][type]) {
+                            swap(data, i, j)
+                        }
+                    } else {
+                        if (data[j][type] < data[i][type]) {
+                            swap(data, i, j)
+                        }
+                    }
+                }
+
+                // 更新文件列表
+                renderFileList(data)
+            }
+        }
+
+        // 两数交换
+        function swap(data, i, j) {
+            let temp;
+
+            temp = data[i].src;
+            data[i].src = data[j].src;
+            data[j].src = temp;
+
+            temp = data[i].size;
+            data[i].size = data[j].size;
+            data[j].size = temp;
+
+            temp = data[i].mtimeMs;
+            data[i].mtimeMs = data[j].mtimeMs;
+            data[j].mtimeMs = temp;
+        }
+
+
+        // 将数据拼接成HTML然后添加到页面上
+        function renderFileList(dataArray) {
+            var fileListHTML = '';
+            for (let item of dataArray) {
+                // href='${item.src}'
+                fileListHTML += `
+                    <tr>
+                        <td>
+                            <a
+                                title='${item.src}' 
+                                onclick="processingResource('${item.src}')">
+                                    ${item.src}
+                                </a>
+                            </td>
+                        <td>${fileSizeFormat(item.size)}</td>
+                        <td>${modifyTimeFormat(item.mtimeMs)}</td>
+                        <td>
+                            <button data-fileName='${item.src}' class="btn-download">下载</button>
+                            <button data-fileName='${item.src}' class="btn-delete">删除</button>
+                        </td>
+                    </tr>`
+            }
+            document.getElementById('allFile').innerHTML = fileListHTML;
+        }
+
+
+        // 根据文件后缀判断文件类型, mp3、mp4类型的文件会打开播放页面, 常见的文本文件会打开编辑页面
+        function processingResource(src) {
+            console.log(src);
+            let hasSuffix = src.lastIndexOf('.');
+            let suffix; // 文件后缀
+            if (hasSuffix > -1) {
+                suffix = src.slice(hasSuffix + 1).toLocaleLowerCase();
+                console.log(suffix);
+            }
+            switch (suffix) {
+                case "mp3":
+                    window.open("./public/playMusic.html?" + src)
+                    break;
+                case "mp4":
+                    window.open("./public/playVideo.html?" + src)
+                    break;
+                case "txt":
+                case "css":
+                case "js":
+                case "java":
+                    window.open("./public/editText.html?" + src)
+                    break;
+                default:
+                    window.open(src)
+                    break;
+            }
+
+        }
+
+        // 文件大小的格式, 为了程序可读性就直接写1024而不是1024的乘除结果(例如1024*1024可以写成1048576,运行会更快一点)
+        function fileSizeFormat(fileSize) {
+            fileSize = Number(fileSize);
+            if (fileSize < 1024) {
+                return fileSize.toFixed(2) + 'B'
+            } else if (fileSize < 1024 * 1024) {
+                return (fileSize / 1024).toFixed(2) + 'KB'
+            } else if (fileSize < 1024 * 1024 * 1024) {
+                return (fileSize / 1024 / 1024).toFixed(2) + 'MB'
+            } else {
+                return (fileSize / 1024 / 1024 / 1024).toFixed(2) + 'GB'
+            }
+        }
+
+        // 修改时间显示的格式
+        function modifyTimeFormat(mtimeMs) {
+            return new Date(mtimeMs).toLocaleString()
+        }
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+table td {
+    padding: 0 15px;
+    border: 1px solid #03a9f4;
+}
+
+table thead th {
+    user-select: none;
+    background: #eee;
+    cursor: pointer;
+}
+
+#allFile a {
+    text-decoration: none;
+    color: #03A9F4;
+    display: inline-block;
+    max-width: 300px;
+    line-height: 35px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+#allFile a:hover {
+    text-decoration: underline;
+    color: #ff5722;
+}
+
+#allFile button {
+    display: inline-block;
+    width: 80px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 18px;
+    background-color: #009688;
+    color: #fff;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+#allFile button:hover {
+    opacity: .8;
+    filter: alpha(opacity=80);
+    color: #fff
+}
+
+#allFile button:active {
+    opacity: 1;
+    filter: alpha(opacity=100)
+}
+
+.btn-delete {
+    background-color: #cc614b!important;
+}
+
+.btn-radius30 {
+    border-radius: 30px!important;
+}
+
+.btn {
+    display: inline-block;
+    width: 80px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 18px;
+    background-color: #03A9F4;
+    color: #fff;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    border-radius: 4px;
+    text-decoration: none;
+    box-shadow: 2px 2px 2px #FF9800;
+}
+
+#uploadFileForm {
+    width: 400px;
+    height: 110px;
+    border: 1px dashed red;
+    padding: 20px;
+    margin: 10px auto;
+}

@@ -1,0 +1,112 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="/public/favicon.ico" type="image/x-icon">
+    <title>zp文件服务器</title>
+    <script src="/public/js/jq.js"></script>
+    <style>
+        .wrap {
+            width: 300px;
+            height: 200px;
+            border: 1px dashed #eee;
+            margin: auto;
+        }
+        
+        .wrap * {
+            margin: 10px;
+        }
+        
+        .zp-input {
+            font-size: 16px;
+            width: 200px;
+            height: 30px;
+            display: block;
+            outline: none;
+            font-family: "Arial";
+            border: 1px solid #eee;
+        }
+        
+        .zp-input:hover {
+            border: 1px solid #ccc;
+            box-shadow: 0px 0px 5px #74ff38;
+        }
+        
+        .button {
+            width: 80px;
+            height: 30px;
+            display: inline-block;
+            padding: 5px 8px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px #999;
+        }
+        
+        .button:hover {
+            opacity: 0.8
+        }
+        
+        .button:active {
+            background-color: #3e8e41;
+            box-shadow: 0 3px #666;
+            transform: translateY(3px);
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="wrap">
+        <div>身份验证: </div>
+        <input id="user" class="zp-input" placeholder="用户名" autofocus>
+        <input id="password" class="zp-input" type="password" placeholder="密码">
+        <button id="submit_password" class="button">验证</button>
+    </div>
+
+
+    <script>
+        password.onkeypress = function(e) {
+            if (e.key === "Enter") {
+                submit_password.click()
+            }
+        }
+
+
+        submit_password.onclick = function() {
+            $.ajax({
+                url: '/identityVerify',
+                type: 'post',
+                data: JSON.stringify({
+                    user: user.value,
+                    password: password.value
+                }),
+                success(d) {
+                    console.log("d: ", d);
+                    d = JSON.parse(d)
+                    if (d.code === 0) {
+
+                        location.reload();
+
+                    } else {
+                        alert(d.msg)
+                    }
+                }
+            })
+
+        }
+    </script>
+
+</body>
+
+</html>
